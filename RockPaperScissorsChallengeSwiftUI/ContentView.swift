@@ -24,25 +24,40 @@ enum RPS: String, CaseIterable, Identifiable {
     }
 }
 
+enum Status: String {
+    case win = "You win!"
+    case lose = "You lose!"
+    case tie = "It's a tie!"
+}
+
 struct ContentView: View {
     @State private var points = 0
     @State private var level = 0
     @State private var protagonist = RPS.allCases.shuffled()[0]
     @State private var antagonist = RPS.allCases.shuffled()[0]
     @State private var showAlert = false
-    @State private var won = false
+    @State private var alertTitle = Status.tie
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Stats")) {
-                    Text("Level: \(level)")
-                    Text("Your points is \(points)")
+                    HStack {
+                        Text("Level")
+                        Spacer()
+                        Text("\(level)")
+                    }
+                    HStack {
+                        Text("Points")
+                        Spacer()
+                        Text("\(points)")
+                    }
                 }
 
                 Section(header: Text("Choose")) {
                     ForEach(RPS.allCases) { choice in
                         Button(action: {
                             self.protagonist = choice
+                            self.antagonist = RPS.allCases.shuffled()[0]
                             self.next()
                         }) {
                             Text(choice.rawValue)
@@ -50,24 +65,22 @@ struct ContentView: View {
                     }
                 }
             }
+            .navigationBarTitle(Text("Rock Paper Scissors"))
         }
         .alert(isPresented: $showAlert) { () -> Alert in
-            Alert(title: Text("\(won ? "You win!" : "You lose!")"), message: Text("Your \(protagonist.rawValue) against \(antagonist.rawValue)"), dismissButton: .default(Text("Next")) {
+            Alert(title: Text(self.alertTitle.rawValue), message: Text("Your \(protagonist.rawValue) against \(antagonist.rawValue)"), dismissButton: .default(Text("Next")) {
                 self.showAlert = false
                 }
             )
-        }
-    }
+        }    }
     
     func next() {
         if level == 10 {
             points = 0
             level = 0
         }
-        level += 1
-        winOrLose()
-        antagonist = RPS.allCases.shuffled()[0]
         
+        winOrLose()
     }
     
     func winOrLose() {
@@ -75,13 +88,19 @@ struct ContentView: View {
         if (isFirst(protagonist) || isFirst(antagonist)) && (isLast(protagonist) || isLast(antagonist)) {
             rpsList = RPS.shuffle()
         }
-        if rpsList.firstIndex(of: protagonist)! > rpsList.firstIndex(of: antagonist)! {
+        if rpsList.firstIndex(of: protagonist)! == rpsList.firstIndex(of: antagonist)! {
+            alertTitle = Status.tie
+        } else if rpsList.firstIndex(of: protagonist)! > rpsList.firstIndex(of: antagonist)! {
             points += 1
-            won = true
-        } else {
-            won = false
+            alertTitle = Status.win
         }
+        else {
+            alertTitle = Status.lose
+        }
+        print(rpsList)
         showAlert = true
+        
+        level += 1
     }
     
     func isFirst(_ rps: RPS) -> Bool {
