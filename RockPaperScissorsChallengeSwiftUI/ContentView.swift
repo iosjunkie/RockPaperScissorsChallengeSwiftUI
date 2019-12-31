@@ -33,8 +33,8 @@ enum Status: String {
 struct ContentView: View {
     @State private var points = 0
     @State private var level = 0
-    @State private var protagonist = RPS.allCases.shuffled()[0]
-    @State private var antagonist = RPS.allCases.shuffled()[0]
+    @State private var protagonist = RPS.allCases.randomElement()!
+    @State private var antagonist = RPS.allCases.randomElement()!
     @State private var showAlert = false
     @State private var alertTitle = Status.tie
     var body: some View {
